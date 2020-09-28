@@ -5,8 +5,5 @@ needfields=radn;maxt;mint;rain
 output_path=E:\气象站点\江苏全部气象站点\肖一嘉大好人\result
 
 [grid]
-radn_path=E:\radn
-rain_paht=E:\rain
-tmax_path=E:\Tmax
-tmin_path=E:\Tmin
+field_paths=E:\rain;E:\maxt;E:\radn
 output_path=result
