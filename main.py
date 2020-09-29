@@ -55,47 +55,69 @@ def format_station_data():
                 result_writer.writerow(info)
 
 
-def one_station_one_day_info_fill(stations, index, field_name, field_value, append):
-    year, day = Utils.index_to_year_and_day(index + 1, 2020, 0)
-    climate = Climate(year, day)
-    climate.__setattr__(field_name, field_value)
+def one_station_one_day_info_fill(stations, climate_index, station_index, field_name, field_value, station_append, climate_append):
 
-    if append:
-        stations.append(RecordsOfStation(index + 1))
+    if station_append:
+        stations.append(RecordsOfStation(station_index + 1))
 
-    stations[index].climate_records.append(climate)
+    if climate_append:
+        year, day = Utils.index_to_year_and_day(climate_index + 1, 2020, 0)
+        stations[station_index].add_single_climate(Climate(year, day))
+
+    stations[station_index].climate_records[climate_index].__setattr__(field_name, field_value)
     return stations
 
 
-def one_day_info_fill(stations, field_file, field_name, append):
-    for i in range(6):
-        next(field_file)
+def one_day_info_fill(stations, climate_index, field_file_name, field_name, station_append, climate_append):
+    if field_file_name.endswith("_cov.grd") or not (field_file_name.endswith(".grd")):
+        return stations
 
-    index = 0
-    for row in field_file:
-        climates = row.replace("*", "").split(" ")
+    print(field_file_name)
+    with open(field_file_name, 'r') as field_file:
 
-        for climate_info in climates:
-            one_station_one_day_info_fill(stations, index, field_name, int(climate_info), append)
-            index += 1
+        for i in range(6):
+            next(field_file)
+
+
+        station_index = 0
+        for row in field_file:
+            climates = row.rstrip().replace("-9999.0", "").split(" ")
+            # climates = row..split(" ")
+
+            for climate_info in climates:
+                if climate_info == '':
+                    continue
+                # print(climate_info)
+                stations = one_station_one_day_info_fill(stations, climate_index, station_index, field_name, float(climate_info), station_append, climate_append)
+                station_index += 1
 
     return stations
 
 
-def fill_single_field(stations, field_path, field_name):
-    for field_file_name in os.listdir(field_path):
-        if field_file_name.endswith("_cov.grd"):
-            continue
+def fill_single_field(stations, field_path, field_name, climate_append):
+    field_file_list = get_field_file_list(field_path)
 
+    climate_index = 0
+    for field_file_name in field_file_list:
         if not stations:
-            append = True
+            station_append = True
         else:
-            append = False
+            station_append = False
 
-        with open(field_file_name, 'r') as field_file:
-            stations = one_day_info_fill(stations, field_file, field_name, append)
+        # with open(os.path.join(field_path, field_file_name), 'r') as field_file:
+        #     print(field_file_name)
+        stations = one_day_info_fill(stations, climate_index, os.path.join(field_path, field_file_name), field_name,
+                                     station_append, climate_append)
+        climate_index += 1
 
     return stations
+
+
+def get_field_file_list(field_path):
+    field_file_list = [field_file_name for field_file_name in os.listdir(field_path) if
+                       field_file_name.endswith(".grd") and not field_file_name.endswith("_cov.grd")]
+    field_file_list.sort(key=lambda x: int(x[:-4]))
+    return field_file_list
 
 
 def format_grid_data():
@@ -103,9 +125,12 @@ def format_grid_data():
 
     stations = []
 
+    climate_append = True
     for field_path in GridConfig.field_paths:
         field_name = Utils.parse_path_get_field_name(field_path)
-        stations = fill_single_field(stations, field_path, field_name)
+        stations = fill_single_field(stations, field_path, field_name, climate_append)
+        print("finish " + field_name)
+        climate_append = False
 
     for station in stations:
         station.export_to_csv(GridConfig.output_path)

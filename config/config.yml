@@ -5,5 +5,5 @@ needfields=radn;maxt;mint;rain
 output_path=E:\气象站点\江苏全部气象站点\肖一嘉大好人\result
 
 [grid]
-field_paths=E:\rain;E:\maxt;E:\radn
-output_path=result
+field_paths=E:\  \rain;E:\XYJ烦人\maxt;E:\XYJ烦人\mint;E:\XYJ烦人\radn
+output_path=E:\XYJ烦人\result

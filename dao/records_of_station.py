@@ -27,20 +27,20 @@ class RecordsOfStation:
                 climate_info = [i for i in line.split(" ") if i != ""]
                 if int(climate_info[0]) < 2020:
                     continue
-                climate = Climate(climate_info[0], climate_info[1], climate_info[2], climate_info[3], climate_info[4],
-                                  climate_info[5])
-                self.climate_records.append(climate)
+                climate_record = Climate(climate_info[0], climate_info[1], climate_info[2], climate_info[3], climate_info[4],
+                                         climate_info[5])
+                self.climate_records.append(climate_record)
         print("climate-records:" + str(len(self.climate_records)))
 
-    def add_single_climate(self, climate) -> None:
+    def add_single_climate(self, climate_record) -> None:
         if self.climate_records is None:
             self.climate_records = []
-        self.climate_records.append(climate)
+        self.climate_records.append(climate_record)
 
     def to_string(self, field_name):
         format_result = []
-        for climate in self.climate_records:
-            format_result.append(climate.__getattribute__(field_name))
+        for climate_record in self.climate_records:
+            format_result.append(climate_record.__getattribute__(field_name))
 
         return format_result
 
