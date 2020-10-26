@@ -8,6 +8,7 @@ import os
 
 from config.climate_config import ClimateConfig
 from config.grid_config import GridConfig
+from config.shp_config import ShpConfig
 from dao.climate import Climate
 from dao.records_of_station import RecordsOfStation
 from dao.station import StationInfo
@@ -55,8 +56,8 @@ def format_station_data():
                 result_writer.writerow(info)
 
 
-def one_station_one_day_info_fill(stations, climate_index, station_index, field_name, field_value, station_append, climate_append):
-
+def one_station_one_day_info_fill(stations, climate_index, station_index, field_name, field_value, station_append,
+                                  climate_append):
     if station_append:
         stations.append(RecordsOfStation(station_index + 1))
 
@@ -78,7 +79,6 @@ def one_day_info_fill(stations, climate_index, field_file_name, field_name, stat
         for i in range(6):
             next(field_file)
 
-
         station_index = 0
         for row in field_file:
             climates = row.rstrip().replace("-9999.0", "").split(" ")
@@ -88,7 +88,8 @@ def one_day_info_fill(stations, climate_index, field_file_name, field_name, stat
                 if climate_info == '':
                     continue
                 # print(climate_info)
-                stations = one_station_one_day_info_fill(stations, climate_index, station_index, field_name, float(climate_info), station_append, climate_append)
+                stations = one_station_one_day_info_fill(stations, climate_index, station_index, field_name,
+                                                         float(climate_info), station_append, climate_append)
                 station_index += 1
 
     return stations
@@ -138,6 +139,52 @@ def format_grid_data():
     return
 
 
+def read_cell_info(source):
+    next(source)
+    row_row = next(source)
+    row = int(row_row.rstrip().split(" ")[-1])
+    x_corner_row = next(source)
+    x_corner = float(x_corner_row.rstrip().split(" ")[-1])
+    y_corner_row = next(source)
+    y_corner = float(y_corner_row.rstrip().split(" ")[-1])
+    cell_size_row = next(source)
+    cell_size = float(cell_size_row.rstrip().split(" ")[-1])
+
+    next(source)
+
+    return x_corner, y_corner + cell_size * row, cell_size
+
+
+def calculate_position(x_corner, y_corner, cell_size, i, j):
+    return x_corner + cell_size * i + cell_size / 2, y_corner - cell_size * j - cell_size / 2
+
+
+def create_point():
+    ShpConfig.parse_from_file("config/config.yml")
+
+    with open(ShpConfig.source_file) as source:
+
+        with open(ShpConfig.result_file, 'w') as result:
+            result.write("Point\r\n")
+            index = 0
+
+            x_corner, y_corner, cell_size = read_cell_info(source)
+
+            j = 0
+            for row in source:
+                row = row.rstrip()
+                for i in range(0, len(row), 8):
+                    value = float(row[i:i + 8])
+                    if not value.__eq__(-9999.0):
+                        print(j)
+                        x, y = calculate_position(x_corner, y_corner, cell_size, i/8, j)
+                        result.write(str(index) + " " + str(x) + " " + str(y) + " 1.#QNAN 1.#QNAN\r\n")
+                        index += 1
+                j += 1
+
+
+
 if __name__ == '__main__':
     # format_station_data()
-    format_grid_data()
+    # format_grid_data()
+    create_point()

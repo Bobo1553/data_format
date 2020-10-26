@@ -7,3 +7,8 @@ output_path=E:\气象站点\江苏全部气象站点\肖一嘉大好人\result
 [grid]
 field_paths=E:\  \rain;E:\XYJ烦人\maxt;E:\XYJ烦人\mint;E:\XYJ烦人\radn
 output_path=E:\XYJ烦人\result
+
+[shp]
+source_file=F:\XYJ烦人\maxt\1.grd
+result_file=F:\XYJ烦人\result1016\ClimateSoil.txt
+soil_shp=F:\XYJ烦人\result1016\ClimateSoil.shp
